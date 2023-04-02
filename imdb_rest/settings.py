@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'imdb_rest.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'jb_imdb_rest',
+        'NAME': 'imdb_rest',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': 'Hs107878',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
