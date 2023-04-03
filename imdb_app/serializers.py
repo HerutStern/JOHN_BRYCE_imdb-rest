@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.validators import MinValueValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -29,7 +31,13 @@ class DetailedMovieSerializer(serializers.ModelSerializer):
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
-        fields = '__all__'
+        fields = ['id', 'name', 'birth_year']
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'birth_year': {'required': False}
+        }
+
+
 
 
 class CastSerializer(serializers.ModelSerializer):
@@ -66,11 +74,3 @@ class CreateMovieSerializer(serializers.ModelSerializer):
         if attrs['release_year'] <= 1920 and attrs['duration_in_min'] >= 60:
             raise ValidationError('Old movies supposed to me short')
         return attrs
-
-# actor
-class ActorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Actor
-        fields = ['id', 'name', 'birth_year']
-        # exclude = ['pic_url']
-        # depth = 1
