@@ -1,25 +1,27 @@
 import datetime
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-# Create your models here.
+from imdb_app.validators import validate_year_before_now
 
-def validate_birth_year(val):
-    if val[int('birth_year')] > datetime.datetime.today().year - 5:
-        raise ValidationError('The actor is too young')
+
+# Create your models here.
 
 class Actor(models.Model):
 
     name = models.CharField(max_length=256, db_column='name', null=False, blank=False)
-    birth_year = models.IntegerField(db_column='birth_year', null=False, validators=[validate_birth_year])
+    birth_year = models.IntegerField(
+        db_column='birth_year', null=True
+    )
 
     def __str__(self):
         return self.name
 
     class Meta:
         db_table = 'actors'
+
+
 
 
 

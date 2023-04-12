@@ -1,10 +1,11 @@
-import datetime
-
 from django.core.validators import MinValueValidator
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from imdb_app.models import Movie, Actor, MovieActor, Rating
+from imdb_app.validators import MinAgeValidator
 
 
 # class MovieSerializer(serializers.Serializer):
@@ -29,15 +30,17 @@ class DetailedMovieSerializer(serializers.ModelSerializer):
 
 
 class ActorSerializer(serializers.ModelSerializer):
+
+    # birth_year = serializers.IntegerField(required=False, validators=[])
     class Meta:
         model = Actor
-        fields = ['id', 'name', 'birth_year']
+        fields = '__all__'
         extra_kwargs = {
-            'id': {'read_only': True},
-            'birth_year': {'required': False}
+            'birth_year': {
+                'required': False,
+                'validators': [MinAgeValidator(5)]
+            },
         }
-
-
 
 
 class CastSerializer(serializers.ModelSerializer):
@@ -48,29 +51,62 @@ class CastSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class WriteCastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MovieActor
+        fields = '__all__'
+        # Note no need to add here required: False for salary, since we
+        # configured blank=True in Models
+
+
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
-        exclude = ['id', 'movie']
+        exclude = ['id']
+        extra_kwargs = {
+            'movie': {
+                'write_only': True
+            }
+        }
 
+
+
+class CastForMovieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MovieActor
+        fields = ['actor', 'salary', 'main_role']
 
 class CreateMovieSerializer(serializers.ModelSerializer):
-    # name = models.CharField(max_length=256, db_column='name', null=False)
-    # description = models.TextField(db_column='description', null=False)
-    # duration_in_min = models.FloatField(db_column='duration', null=False)
-    # release_year = models.IntegerField(db_column='year', null=False)
-    # id = serializers.IntegerField(read_only=True)
-    # release_year = serializers.IntegerField(
-    #     validators=[MinValueValidator(1800)]
-    # )
+
+    cast = CastForMovieSerializer(required=False, many=True)
+
     class Meta:
         model = Movie
-        fields = ['id', 'name', 'description', 'duration_in_min', 'release_year']
+        fields = ['id', 'name', 'description', 'duration_in_min', 'release_year', 'cast']
         extra_kwargs = {
             'id': {'read_only': True}
         }
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Movie.objects.all(),
+                fields=['name']
+            )
+        ]
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            cast_data = validated_data.pop('cast')
+            movie = Movie.objects.create(**validated_data)
+            for cast in cast_data:
+                MovieActor.objects.create(**cast, movie_id=movie.id)
+            return movie
 
     def validate(self, attrs):
         if attrs['release_year'] <= 1920 and attrs['duration_in_min'] >= 60:
             raise ValidationError('Old movies supposed to me short')
         return attrs
+
+class MovieActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MovieActor
+        fields = '__all__'
