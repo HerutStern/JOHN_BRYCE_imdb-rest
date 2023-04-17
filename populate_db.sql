@@ -66,16 +66,16 @@ insert into public.oscars (nomination,ceremony_year,actor_id,director_id,movie_i
 	('BEST PICTURE',1999,null,null,1),
 	('VISUAL EFFECTS',2000,null,null,5),
 	('ACTOR IN A SUPPORTING ROLE',1999,1,null,6),
-	('ACTRESS IN A LEADING ROLE',2003,4,null,7),
-	('DIRECTOR',2002,3,1,8),
-	('DIRECTOR',2003,5,2,9);
+	('ACTRESS IN A LEADING ROLE',2003,5,null,7),
+	('DIRECTOR',2002,6,1,8),
+	('DIRECTOR',2003,5,2,3);
 
 ALTER SEQUENCE actors_id_seq RESTART WITH 100;
 ALTER SEQUENCE movies_id_seq RESTART WITH 100;
 ALTER SEQUENCE ratings_id_seq RESTART WITH 100;
 ALTER SEQUENCE movie_actors_id_seq RESTART WITH 100;
-ALTER SEQUENCE directors_actors_id_seq RESTART WITH 100;
-ALTER SEQUENCE oscars_actors_id_seq RESTART WITH 100;
+ALTER SEQUENCE directors_id_seq RESTART WITH 100;
+ALTER SEQUENCE oscars_id_seq RESTART WITH 100;
 
 commit;
 
