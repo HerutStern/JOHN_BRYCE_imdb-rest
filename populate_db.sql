@@ -55,7 +55,28 @@ INSERT INTO public.ratings (rating,rating_date,movie_id) VALUES
 	 (5,'2023-01-18',7),
 	 (6,'2023-01-20',8);
 
+insert into public.directors ("id","name",birth_year) values
+	(1, 'Steven Spielberg', 1946),
+	(2, 'Martin Scorsese', 1942),
+	(3, 'Alfred Hitchcock', 1899),
+	(4, 'James Cameron', 1954),
+	(5, 'Spike Lee', 1957);
+
+insert into public.oscars (nomination,ceremony_year,actor_id,director_id,movie_id) values
+	('BEST PICTURE',1999,null,null,1),
+	('VISUAL EFFECTS',2000,null,null,5),
+	('ACTOR IN A SUPPORTING ROLE',1999,1,null,6),
+	('ACTRESS IN A LEADING ROLE',2003,4,null,7),
+	('DIRECTOR',2002,3,1,8),
+	('DIRECTOR',2003,5,2,9);
+
 ALTER SEQUENCE actors_id_seq RESTART WITH 100;
 ALTER SEQUENCE movies_id_seq RESTART WITH 100;
 ALTER SEQUENCE ratings_id_seq RESTART WITH 100;
 ALTER SEQUENCE movie_actors_id_seq RESTART WITH 100;
+ALTER SEQUENCE directors_actors_id_seq RESTART WITH 100;
+ALTER SEQUENCE oscars_actors_id_seq RESTART WITH 100;
+
+commit;
+
+rollback;
