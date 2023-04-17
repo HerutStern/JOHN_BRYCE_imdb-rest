@@ -72,13 +72,12 @@ class Directors(models.Model):
         db_table = 'directors'
 
 
-
 class Oscars(models.Model):
     nomination = models.CharField(max_length=256, db_column='nomination', null=False, blank=False)
     ceremony_year = models.IntegerField(db_column='ceremony_year', null=True)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=False)
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
-    director = models.ForeignKey(Directors, on_delete=models.CASCADE)
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE, null=True)
+    director = models.ForeignKey(Directors, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         if self.actor is not None:
