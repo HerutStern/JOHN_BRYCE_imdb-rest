@@ -14,9 +14,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from imdb_app import views
 from imdb_app.serializers import ActorSerializer
+from imdb_app.view_sets import MovieViewSet, ActorViewSet
 
 # http://127.0.0.1:8000/api/imdb/movies
 # movies
@@ -24,15 +26,24 @@ from imdb_app.serializers import ActorSerializer
 # http://127.0.0.1:8000/api/imdb/movies/3
 # http://127.0.0.1:8000/api/imdb/movies/327
 
-urlpatterns = [
-    # movies:
-    path('movies', views.get_movies),
-    path('movies/<int:movie_id>', views.get_movie),
-    path('movies/<int:movie_id>/actors', views.get_movie_actors),
 
-    # actors:
-    path('actors', views.get_actors),
-    path('actors/<int:actor_id>', views.actors),
+router = DefaultRouter()
+router.register('movies', MovieViewSet)
+router.register('actors', ActorViewSet)
+
+# movies/ POST, GET(list)
+# movies/<int:movie_id> # PUT/PATCH GET DELETE
+
+
+urlpatterns = [
+    # # movies:
+    # path('movies', views.get_movies),
+    # path('movies/<int:movie_id>', views.get_movie),
+    # path('movies/<int:movie_id>/actors', views.get_movie_actors),
+    #
+    # # actors:
+    # path('actors', views.get_actors),
+    # path('actors/<int:actor_id>', views.actors),
 
     # ratings:
     path('ratings', views.get_ratings),
@@ -45,3 +56,4 @@ urlpatterns = [
     path('movies/<int:movie_id>/actor', views.add_actor_to_movie)
 ]
 
+urlpatterns.extend(router.urls)

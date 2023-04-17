@@ -61,7 +61,6 @@ def get_movies(request: Request):
         return Response(data=serializer.data)
     else:
         serializer = CreateMovieSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -143,14 +142,15 @@ def add_actor_to_movie(request, movie_id):
 
         # getting params from the body
         actor_name = request.data.get('actor_name')
-        if Actor.objects.get(name=actor_name): # check if the actor name exist
+        if Actor.objects.get(name=actor_name): # checking if the actor name exist
             main_role = request.data.get('main_role')
             salary = request.data.get('salary')
 
-            # adding to MovieActor the new movie - actor connection
+            # creating a MovieActor object
             actor_id = Actor.objects.get(name=actor_name)
             movie_actor = MovieActor.objects.create(movie=movie, actor=actor_id, main_role=main_role, salary=salary)
 
+            # serializer and responses:
             serializer = MovieActorSerializer(movie_actor)
             return Response(serializer.data)
         else:

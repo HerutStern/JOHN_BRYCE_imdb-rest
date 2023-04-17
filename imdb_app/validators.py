@@ -3,10 +3,11 @@ import datetime
 
 from django.core.exceptions import ValidationError
 
+
+
 def validate_year_before_now(val):
     if val > datetime.datetime.today().year:
         raise ValidationError("The year is in the future")
-
 
 
 

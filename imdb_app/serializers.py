@@ -76,6 +76,15 @@ class CastForMovieSerializer(serializers.ModelSerializer):
         model = MovieActor
         fields = ['actor', 'salary', 'main_role']
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Actor.objects.all(),
+                fields=['actor']
+            )
+        ]
+
+
+
 class CreateMovieSerializer(serializers.ModelSerializer):
 
     cast = CastForMovieSerializer(required=False, many=True)
@@ -93,6 +102,7 @@ class CreateMovieSerializer(serializers.ModelSerializer):
             )
         ]
 
+
     def create(self, validated_data):
         with transaction.atomic():
             cast_data = validated_data.pop('cast')
@@ -101,10 +111,15 @@ class CreateMovieSerializer(serializers.ModelSerializer):
                 MovieActor.objects.create(**cast, movie_id=movie.id)
             return movie
 
+
     def validate(self, attrs):
         if attrs['release_year'] <= 1920 and attrs['duration_in_min'] >= 60:
             raise ValidationError('Old movies supposed to me short')
         return attrs
+
+# def validate_cast(val):
+#     if val not in Actor.objects.all():
+#         raise ValidationError("Some of the actors do not exist")
 
 class MovieActorSerializer(serializers.ModelSerializer):
     class Meta:
