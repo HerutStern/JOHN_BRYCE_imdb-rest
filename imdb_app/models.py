@@ -74,7 +74,7 @@ class Directors(models.Model):
 
 
 class Oscars(models.Model):
-    nomination = models.CharField(max_length=256, db_column='nominations', null=False, blank=False)
+    nomination = models.CharField(max_length=256, db_column='nomination', null=False, blank=False)
     ceremony_year = models.IntegerField(db_column='ceremony_year', null=True)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=False)
     actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
