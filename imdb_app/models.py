@@ -90,9 +90,7 @@ class Oscars(models.Model):
             director_str = ''
 
         return f'Oscar Ceremony Nomination - {self.nomination}' \
-               f'\nCeremony Year - {self.ceremony_year}' \
-               f'\nMovie - {self.movie}' \
-               f'{actor_str}{director_str}'
+               f'\nCeremony Year - {self.ceremony_year}'
 
     class Meta:
         db_table = 'oscars'

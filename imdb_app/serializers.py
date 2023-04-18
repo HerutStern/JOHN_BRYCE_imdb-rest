@@ -4,8 +4,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
-from imdb_app.models import Movie, Actor, MovieActor, Rating
-from imdb_app.validators import MinAgeValidator
+from imdb_app.models import Movie, Actor, MovieActor, Rating, Directors, Oscars
+from imdb_app.validators import MinAgeValidator, actor_oscar_validate
 
 
 # class MovieSerializer(serializers.Serializer):
@@ -102,7 +102,6 @@ class CreateMovieSerializer(serializers.ModelSerializer):
             )
         ]
 
-
     def create(self, validated_data):
         with transaction.atomic():
             cast_data = validated_data.pop('cast')
@@ -125,3 +124,29 @@ class MovieActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = MovieActor
         fields = '__all__'
+
+class DirectorsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Directors
+        fields = '__all__'
+        extra_kwargs = {
+            'birth_year': {
+                'required': False
+            }
+        }
+
+
+class OscarsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Oscars
+        fields = '__all__'
+        extra_kwargs = {
+            'actor': {
+                'required': False
+            },
+            'director': {
+                'required': False
+            }
+        }
+
+        validators = [actor_oscar_validate(model('nomination'), model('actor'))]
