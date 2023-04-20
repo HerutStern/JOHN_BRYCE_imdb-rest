@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from imdb_app.models import Movie, Actor, MovieActor, Rating, Directors, Oscars
-from imdb_app.validators import MinAgeValidator, actor_oscar_validate
+from imdb_app.validators import MinAgeValidator
 
 
 # class MovieSerializer(serializers.Serializer):
@@ -148,5 +148,3 @@ class OscarsSerializer(serializers.ModelSerializer):
                 'required': False
             }
         }
-
-        validators = [actor_oscar_validate(model('nomination'), model('actor'))]

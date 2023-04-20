@@ -20,12 +20,7 @@ class MinAgeValidator:
                                   f"We allow only actors older than {self.age} years old")
 
 
-def actor_oscar_validate(val, actor_id):
-    if actor_id.actor is not None:
-        val = str(val)
-        if val.upper() not in ['ACTRESS IN A SUPPORTING ROLE', 'ACTOR IN A SUPPORTING ROLE',
-                       'ACTOR IN A LEADING ROLE', 'ACTRESS IN A LEADING ROLE']:
-            raise ValidationError('Actor_id should be passed only if the nomination requires it')
+
 
 # my_validator = MinAgeValidator(5)
 # my_validator(1998)

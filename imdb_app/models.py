@@ -1,6 +1,7 @@
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 
@@ -71,9 +72,17 @@ class Directors(models.Model):
     class Meta:
         db_table = 'directors'
 
+class UpperCaseCharField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        if value is not None:
+            return value.upper()
+        return value
 class Oscars(models.Model):
-    nomination = models.CharField(max_length=256, db_column='nomination', null=False)
+    nomination = UpperCaseCharField(max_length=256, db_column='nomination', null=False, )
     ceremony_year = models.IntegerField(db_column='ceremony_year', null=False)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=False)
     actor = models.ForeignKey(Actor, on_delete=models.CASCADE, null=True)
@@ -94,3 +103,16 @@ class Oscars(models.Model):
 
     class Meta:
         db_table = 'oscars'
+
+    def actor_validate(self):
+        if self.actor is not None:
+            if self.nomination not in ['ACTRESS IN A SUPPORTING ROLE', 'ACTOR IN A SUPPORTING ROLE',
+                                     'ACTOR IN A LEADING ROLE', 'ACTRESS IN A LEADING ROLE']:
+                raise ValidationError("Actor_id should be passed only if the nomination requires it")
+
+    def save(self, *args, **kwargs):
+        self.actor_validate()
+        super().save(*args, **kwargs)
+
+
+

@@ -1,11 +1,12 @@
 import django_filters
+from django.http import JsonResponse
 from django_filters import FilterSet
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from django.core.exceptions import ValidationError
+
 
 from imdb_app.models import Movie, Actor, Directors, Oscars
 from imdb_app.serializers import MovieSerializer, DetailedMovieSerializer, CreateMovieSerializer, CastSerializer, \
@@ -117,4 +118,24 @@ class OscarsViewSet(mixins.CreateModelMixin,
             return self.get_paginated_response(data)
         else:
             return Response(data)
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except ValidationError as e:
+            return JsonResponse({'error': str(e)}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
+    @action(methods=['GET'], detail=True, url_path='years/<oscar_year>')
+    def get_year(self, *args, **kwargs):
+        oscar_year = kwargs['oscar_year']
+        queryset = self.get_queryset().filter(ceremony_year=oscar_year)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

@@ -15,6 +15,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from imdb_app import views
 from imdb_app.serializers import ActorSerializer
@@ -33,6 +34,7 @@ router.register('actors', ActorViewSet)
 router.register('directors', DirectorsViewSet)
 router.register('oscars', OscarsViewSet)
 
+
 # movies/ POST, GET(list)
 # movies/<int:movie_id> # PUT/PATCH GET DELETE
 
@@ -46,6 +48,10 @@ urlpatterns = [
     # # actors:
     # path('actors', views.get_actors),
     # path('actors/<int:actor_id>', views.actors),
+
+    path('auth/login', TokenObtainPairView.as_view()),
+
+    path('oscars/years/<oscar_year>/', OscarsViewSet.as_view({'get': 'get_year'}), name='get_year'),
 
     # ratings:
     path('ratings', views.get_ratings),
