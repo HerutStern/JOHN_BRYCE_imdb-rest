@@ -1,8 +1,11 @@
 import django_filters
+from django.db.models import Count, OuterRef, Subquery
 from django.http import JsonResponse
 from django_filters import FilterSet
 from rest_framework import mixins, status
+from rest_framework.authtoken.admin import User
 from rest_framework.decorators import action
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from django.core.exceptions import ValidationError
@@ -10,8 +13,23 @@ from django.core.exceptions import ValidationError
 
 from imdb_app.models import Movie, Actor, Directors, Oscars
 from imdb_app.serializers import MovieSerializer, DetailedMovieSerializer, CreateMovieSerializer, CastSerializer, \
-    ActorSerializer, DirectorsSerializer, OscarsSerializer
+    ActorSerializer, DirectorsSerializer, OscarsSerializer, SignupSerializer
 
+
+# users:
+
+class UserPermission(BasePermission):
+    def has_permission(self, request, view):
+        return view.action == 'create' and request.data['is_staff'] and request.user.is_staff
+
+class UsersViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    serializer_class = SignupSerializer
+    queryset = User.objects.all()
+    permission_classes = [UserPermission]
 
 # movie:
 
@@ -26,6 +44,19 @@ class MovieFilterSet(FilterSet):
         model = Movie
         fields = ['release_year']
 
+class MoviePermission(BasePermission):
+
+    def has_permission(self, request, view):
+        print("inside has_permission")
+        return request.user.is_staff or view.action \
+            in ('list', 'retrieve')
+
+    def has_object_permission(self, request, view, obj):
+        print("inside has_object_permission", obj)
+        return view.action == 'retrieve' or \
+            obj.created_by == request.user
+        # obj.created_by_id == request.user.id
+
 class MovieViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
@@ -35,6 +66,21 @@ class MovieViewSet(mixins.CreateModelMixin,
     serializer_class = MovieSerializer
     queryset = Movie.objects.all()
     filterset_class = MovieFilterSet
+    permission_classes = [MoviePermission]
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return DetailedMovieSerializer
+        elif self.action == 'create':
+            return CreateMovieSerializer
+        else:
+            return super().get_serializer_class()
+
+        # def get_permissions(self):
+        #     if self.action in ('create', 'update', 'destroy'):
+        #         return [IsAdminUser()]
+        #     else:
+        #         return []
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -75,6 +121,7 @@ class OscarsFilterSet(FilterSet):
     class Meta:
         model = Oscars
         fields = ['ceremony_year', 'nomination', 'actor']
+
 
 
 class OscarsViewSet(mixins.CreateModelMixin,
@@ -129,7 +176,7 @@ class OscarsViewSet(mixins.CreateModelMixin,
             return JsonResponse({'error': str(e)}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     @action(methods=['GET'], detail=True, url_path='years/<oscar_year>')
-    def get_year(self, *args, **kwargs):
+    def get_year(self, request, *args, **kwargs):
         oscar_year = kwargs['oscar_year']
         queryset = self.get_queryset().filter(ceremony_year=oscar_year)
         page = self.paginate_queryset(queryset)
@@ -139,3 +186,25 @@ class OscarsViewSet(mixins.CreateModelMixin,
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(methods=['GET'], detail=True, url_path='movie_with_most_oscars ')
+    def get_movie_with_most_oscars(self):
+        qs = Oscars.objects.all().annotate().order_by('movie_id')
+        data = {}
+        if qs.exists():
+            most_common_movie_id = qs.first().movie_id
+            movie = Movie.objects.get(id= most_common_movie_id)
+            data['movie_id'] = most_common_movie_id
+            movie_serializer = MovieSerializer(movie)
+            data['movie_name'] = movie_serializer.data['name']
+        else:
+            data = None
+        return JsonResponse(data)
+    @action(methods=['GET'], detail=True, url_path='actor_with_most_oscars ')
+    def get_actor_with_most_oscars (self, request, *args, **kwargs):
+        pass
+
+    @action(methods=['GET'], detail=True, url_path='total_oscars ')
+    def get_total_oscars (self, request, *args, **kwargs):
+        pass
+

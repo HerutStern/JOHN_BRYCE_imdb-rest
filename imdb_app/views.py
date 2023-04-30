@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.request import Request
 
-from imdb_app.models import *
 from imdb_app.serializers import *
 
 from django.db.models import Avg
@@ -175,3 +175,32 @@ def add_rating_to_movie(request, movie_id):
 
     else:
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['POST'])
+def signup(request):
+    if request.data['is_staff']:
+        if request.user.is_staff:
+            s = SignupSerializer(data=request.data)
+            s.is_valid(raise_exception=True)
+            s.save()
+            return Response(data=s.data)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        s = SignupSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response(data=s.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    serializer = UserSerializer(instance=request.user)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def me_get_users(request):
+    serializer = UserSerializer(instance=request.user)
+    return Response(serializer.data)

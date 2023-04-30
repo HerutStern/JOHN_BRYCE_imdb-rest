@@ -1,7 +1,9 @@
-from django.core.validators import MinValueValidator
+from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.authtoken.admin import User
 from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 
 from imdb_app.models import Movie, Actor, MovieActor, Rating, Directors, Oscars
@@ -148,3 +150,32 @@ class OscarsSerializer(serializers.ModelSerializer):
                 'required': False
             }
         }
+
+
+class SignupSerializer(ModelSerializer):
+
+    password = serializers.CharField(
+        max_length=128, validators=[validate_password], write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'password', 'is_staff']
+        extra_kwargs = {
+            'email': {'required': True},
+            'username': {'read_only': True},
+        }
+        validators = [UniqueTogetherValidator(User.objects.all(), ['email'])]
+
+    def create(self, validated_data):
+        user = User.objects.create(username=validated_data['email'],
+                                   email=validated_data['email'],
+                                   first_name=validated_data.get('first_name', ''),
+                                   last_name=validated_data.get('last_name', ''))
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ['password', 'groups', 'last_login', 'user_permissions']

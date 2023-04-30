@@ -15,11 +15,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from imdb_app import views
-from imdb_app.serializers import ActorSerializer
 from imdb_app.view_sets import MovieViewSet, ActorViewSet, DirectorsViewSet, OscarsViewSet
+from imdb_app.views import signup, me
 
 # http://127.0.0.1:8000/api/imdb/movies
 # movies
@@ -50,8 +50,14 @@ urlpatterns = [
     # path('actors/<int:actor_id>', views.actors),
 
     path('auth/login', TokenObtainPairView.as_view()),
+    path('auth/refresh', TokenRefreshView.as_view()),
+    path('auth/signup', signup),
+    path('auth/me', me),
+    path('auth/me/get_users', views.me_get_users),
+
 
     path('oscars/years/<oscar_year>/', OscarsViewSet.as_view({'get': 'get_year'}), name='get_year'),
+    path('oscars/movie_with_most_oscars', OscarsViewSet.get_movie_with_most_oscars),
 
     # ratings:
     path('ratings', views.get_ratings),
